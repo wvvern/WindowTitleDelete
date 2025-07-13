@@ -4,12 +4,15 @@ import com.sun.jna.Native;
 import com.sun.jna.platform.win32.User32;
 import com.sun.jna.platform.win32.WinDef;
 import com.sun.jna.platform.win32.WinUser;
+import net.minecraft.client.Minecraft;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.FMLLog;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.Mod.EventHandler;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.gameevent.TickEvent;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import org.apache.logging.log4j.Logger;
@@ -27,6 +30,7 @@ public class WindowsTitlebarDelete {
     public static final String VERSION = "1.0.0";
 
     private static final Logger LOGGER = FMLLog.getLogger();
+    private boolean lastFullscreenState = false;
 
     @EventHandler
     public void preInit(FMLPreInitializationEvent event) {
@@ -36,6 +40,21 @@ public class WindowsTitlebarDelete {
     @EventHandler
     public void postInit(FMLPostInitializationEvent event) {
         hideTitlebar();
+        lastFullscreenState = Minecraft.getMinecraft().isFullScreen();
+    }
+
+    @SubscribeEvent
+    public void onClientTick(TickEvent.ClientTickEvent event) {
+        if (event.phase == TickEvent.Phase.END) {
+            boolean currentFullscreenState = Minecraft.getMinecraft().isFullScreen();
+            
+            if (lastFullscreenState && !currentFullscreenState) {
+                // Just exited fullscreen, re-hide titlebar
+                hideTitlebar();
+            }
+            
+            lastFullscreenState = currentFullscreenState;
+        }
     }
 
     private void hideTitlebar() {
@@ -49,7 +68,7 @@ public class WindowsTitlebarDelete {
             if (hwnd != null) {
                 int currentStyle = User32.INSTANCE.GetWindowLong(hwnd, WinUser.GWL_STYLE);
                 int newStyle = currentStyle & ~(WinUser.WS_CAPTION | WinUser.WS_SYSMENU | WinUser.WS_MINIMIZEBOX | WinUser.WS_MAXIMIZEBOX);
-                newStyle |= WinUser.WS_MAXIMIZEBOX;
+                newStyle |= (WinUser.WS_MAXIMIZEBOX | WinUser.WS_THICKFRAME);
 
                 User32.INSTANCE.SetWindowLong(hwnd, WinUser.GWL_STYLE, newStyle);
                 User32.INSTANCE.SetWindowPos(
