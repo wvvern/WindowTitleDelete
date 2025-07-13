@@ -1,0 +1,16 @@
+[
+{
+  "modid": "windowstitlebardelete",
+  "name": "Windows Titlebar Delete",
+  "description": "A client-side mod that hides the windows titlebar of the game window",
+  "version": "${version}",
+  "mcversion": "${mcversion}",
+  "url": "",
+  "updateUrl": "",
+  "authorList": ["dark"],
+  "credits": "",
+  "logoFile": "",
+  "screenshots": [],
+  "dependencies": []
+}
+]
